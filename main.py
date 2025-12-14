@@ -123,6 +123,48 @@ class Lexer:
         tokens.append(("EOF", "", self.line, self.col))
         return tokens
 
+class Parser:
+    def __init__(self, tokens: List[Token]):
+        self.tokens = tokens
+        self.pos = 0
+
+    def _peek(self):
+        return self.tokens[self.pos]
+
+    def _advance(self):
+        t = self.tokens[self.pos]
+        self.pos += 1
+        return t
+
+    def parse(self):
+        values = []
+        while self._peek()[0] != "EOF":
+            values.append(self._parse_value())
+        return values
+
+    def _parse_value(self):
+        t = self._peek()
+        if t[0] == "NUMBER":
+            return float(self._advance()[1])
+        if t[0] == "STRING":
+            return self._advance()[1]
+        if t[0] == "DICT_START":
+            return self._parse_dict()
+        raise ParseError("Invalid value")
+
+    def _parse_dict(self):
+        self._advance()
+        d = {}
+        while self._peek()[0] != "]":
+            key = self._advance()[1]
+            self._advance()
+            val = self._parse_value()
+            d[key] = val
+            if self._peek()[0] == ",":
+                self._advance()
+        self._advance()
+        return d
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", "-o", required=True)
