@@ -1,5 +1,14 @@
 import sys
 import argparse
+from typing import Tuple, List, Any, Dict
+
+Token = Tuple[str, str, int, int]
+
+class LexerError(Exception):
+    pass
+
+class ParseError(Exception):
+    pass
 
 def main():
     parser = argparse.ArgumentParser()
