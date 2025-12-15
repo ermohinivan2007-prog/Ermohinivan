@@ -1,6 +1,7 @@
 import sys
 import argparse
 import re
+import copy
 from typing import Tuple, List, Any, Dict
 
 Token = Tuple[str, str, int, int]
@@ -127,6 +128,7 @@ class Parser:
     def __init__(self, tokens: List[Token]):
         self.tokens = tokens
         self.pos = 0
+        self.consts: Dict[str, Any] = {}
 
     def _peek(self):
         return self.tokens[self.pos]
@@ -139,7 +141,12 @@ class Parser:
     def parse(self):
         values = []
         while self._peek()[0] != "EOF":
-            values.append(self._parse_value())
+            if self._peek()[0] == "VAR":
+                self._advance()
+                name = self._advance()[1]
+                self.consts[name] = self._parse_value()
+            else:
+                values.append(self._parse_value())
         return values
 
     def _parse_value(self):
@@ -150,6 +157,11 @@ class Parser:
             return self._advance()[1]
         if t[0] == "DICT_START":
             return self._parse_dict()
+        if t[0] == "ATLPAREN":
+            self._advance()
+            name = self._advance()[1]
+            self._advance()
+            return copy.deepcopy(self.consts[name])
         raise ParseError("Invalid value")
 
     def _parse_dict(self):
@@ -173,4 +185,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
