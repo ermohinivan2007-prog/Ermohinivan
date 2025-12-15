@@ -2,6 +2,8 @@ import sys
 import argparse
 import re
 import copy
+import xml.etree.ElementTree as ET
+from xml.dom import minidom
 from typing import Tuple, List, Any, Dict
 
 Token = Tuple[str, str, int, int]
@@ -176,6 +178,21 @@ class Parser:
                 self._advance()
         self._advance()
         return d
+
+def dict_to_xml_element(d, tag="item"):
+    elem = ET.Element(tag)
+    for k, v in d.items():
+        child = ET.SubElement(elem, str(k))
+        if isinstance(v, dict):
+            for sub in dict_to_xml_element(v):
+                child.append(sub)
+        else:
+            child.text = str(v)
+    return elem
+
+def pretty_xml_string(elem):
+    rough = ET.tostring(elem, 'utf-8')
+    return minidom.parseString(rough).toprettyxml(indent="  ")
 
 def main():
     parser = argparse.ArgumentParser()
