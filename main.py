@@ -198,7 +198,23 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", "-o", required=True)
     args = parser.parse_args()
+
     input_text = sys.stdin.read()
+
+    lexer = Lexer(input_text)
+    tokens = lexer.tokens()
+
+    parser_ = Parser(tokens)
+    values = parser_.parse()
+
+    root = ET.Element("config")
+    for v in values:
+        if isinstance(v, dict):
+            root.append(dict_to_xml_element(v))
+
+    xml = pretty_xml_string(root)
+    with open(args.out, "w", encoding="utf-8") as f:
+        f.write(xml)
 
 if __name__ == "__main__":
     main()
